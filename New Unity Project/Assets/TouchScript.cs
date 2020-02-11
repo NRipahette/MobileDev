@@ -7,6 +7,8 @@ public class TouchScript : MonoBehaviour
     BehaviorScriptCube1 selectedObject;
     private float ObjDistance;
     Camera my_camera;
+    private float zoomSpeed = 3;
+    private float cameraSpeed = 0.01f;
     private float timePassed = 0f;
     private bool IsTap = true;
     private Vector3 startingPoint;
@@ -55,7 +57,7 @@ public class TouchScript : MonoBehaviour
                         
                         if (Physics.Raycast(raycast, out raycastHit))
                         {
-                            ObjDistance = raycastHit.distance;
+                            ObjDistance = raycastHit.transform.position.z - my_camera.transform.position.z ;
                             //if (Input.GetTouch(0).phase == TouchPhase.Began)
                             if (IsTap)
                             {
@@ -97,8 +99,16 @@ public class TouchScript : MonoBehaviour
                     }
                 }else if (touchZero.phase == TouchPhase.Moved || touchZero.phase == TouchPhase.Stationary && !IsTap)
                 {
-                   // Debug.Log(touchZero.position.x - startingPoint.x);
-                    selectedObject.Drag(touchZero, startingPoint,  ObjDistance);
+                    // Debug.Log(touchZero.position.x - startingPoint.x);
+                    if (selectedObject != null)
+                    {
+                        selectedObject.Drag(touchZero, startingPoint, ObjDistance);
+                    }
+                    else
+                    {
+                       
+                        my_camera.transform.Translate(-touchZero.deltaPosition.x * cameraSpeed, -touchZero.deltaPosition.y * cameraSpeed, 0);
+                    }
                 }
             }
             if (Input.touchCount == 2)
@@ -118,11 +128,41 @@ public class TouchScript : MonoBehaviour
                 // Find the difference in distances between each frame.
                 float deltaMagnitudeDiff = (prevTouchDeltaMag - touchDeltaMag) * 0.01f;
 
-                Vector3 newScale = selectedObject.transform.localScale - new Vector3(deltaMagnitudeDiff, deltaMagnitudeDiff, deltaMagnitudeDiff);
-                if (newScale.x <= 0)
-                    selectedObject.transform.localScale = Vector3.zero;
+                var prevPos1 = touchZero.position - touchZero.deltaPosition;  // Generate previous frame's finger positions
+                var prevPos2 = touchOne.position - touchOne.deltaPosition;
+                Vector2 prevDir = prevPos2 - prevPos1;
+                Vector2 currDir = touchOne.position - touchZero.position;
+                float angle = 0;
+                angle = Vector2.SignedAngle(prevDir, currDir);
+
+                if (selectedObject != null)
+                {
+                    
+
+                   
+
+                    Vector3 newScale = selectedObject.transform.localScale - new Vector3(deltaMagnitudeDiff, deltaMagnitudeDiff, deltaMagnitudeDiff);
+                    if (newScale.x <= 0)
+                        selectedObject.transform.localScale = Vector3.zero;
+                    else
+                        selectedObject.transform.localScale = newScale;
+
+                    
+
+                    
+                    selectedObject.transform.Rotate(0, 0, angle);
+                }
                 else
-                    selectedObject.transform.localScale = newScale;
+                {
+                    float newFov = my_camera.fieldOfView + deltaMagnitudeDiff * zoomSpeed;
+                    if (newFov <= 0)
+                        my_camera.fieldOfView = 0;
+                    else
+                        my_camera.fieldOfView = newFov;
+
+                    my_camera.transform.Rotate(0, 0, -angle);
+                }
+                
             }
             else
             {
