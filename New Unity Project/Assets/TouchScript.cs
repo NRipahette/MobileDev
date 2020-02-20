@@ -229,6 +229,10 @@ public class TouchScript : MonoBehaviour
                 }
 
             }
+            else if (Input.touchCount == 3)
+            {
+
+            }
             else
             {
 

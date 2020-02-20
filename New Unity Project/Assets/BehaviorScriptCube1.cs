@@ -18,6 +18,7 @@ public class BehaviorScriptCube1 : MonoBehaviour
     }
     internal void ChangeColor()
     {
+        my_renderer = GetComponent<Renderer>();
         my_renderer.material.color = Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
     }
 
